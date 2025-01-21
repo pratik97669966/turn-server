@@ -1,16 +1,14 @@
-FROM debian:bullseye
+FROM ubuntu:22.04
 
-# Install CoTURN
-RUN apt-get update && apt-get install -y coturn && apt-get clean
+RUN apt update
+RUN apt install coturn -y
 
-# Copy configuration file
-COPY turnserver.conf /etc/turnserver.conf
+RUN sed -i "s/USER=turnserver/USER=root/" /etc/init.d/coturn
+RUN sed -i "s/GROUP=turnserver/GROUP=root/" /etc/init.d/coturn
+RUN sed -i "s/#TURNSERVER_ENABLED=1/TURNSERVER_ENABLED=1/" /etc/default/coturn
 
-# Expose TURN/STUN ports
-EXPOSE 3478/udp
-EXPOSE 3478/tcp
-EXPOSE 5349/tcp
-EXPOSE 49152-65535/udp
+RUN service coturn stop
+#RUN service coturn start
 
-# Start the TURN server
-CMD ["turnserver", "-c", "/etc/turnserver.conf", "--no-cli", "--daemon"]
+#/etc/default/coturn -> TURNSERVER_ENABLED=1
+CMD service coturn start && tail -f /dev/null
